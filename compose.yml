@@ -1,0 +1,15 @@
+services:
+  app:
+    image: restaurant-platform:${APP_VERSION}
+    container_name: ${INSTANCE_NAME}
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports:
+      - "${APP_PORT}:3000"
+    networks:
+      - restaurant-services
+
+networks:
+  restaurant-services:
+    external: true
