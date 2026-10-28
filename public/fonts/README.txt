@@ -1,1 +1,1 @@
-Place your existing Morabba-Medium.woff here.
+Morabba-Medium.woff is fetched automatically during npm run build when it is not already present.\n

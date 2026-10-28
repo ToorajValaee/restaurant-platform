@@ -1,9 +1,10 @@
 {
   "name": "restaurant-platform",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/fetch-font.mjs",
     "dev": "tsx watch src/server.ts",
     "dev:admin": "vite --config admin/vite.config.ts",
     "build:admin": "vite build --config admin/vite.config.ts",

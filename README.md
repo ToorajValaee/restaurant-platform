@@ -72,21 +72,17 @@ The `/` route now follows the original `cucinetta` static homepage layout:
 
 Homepage content is read from `app_settings` and managed from `/admin`.
 
-### Existing Morabba font
+### Morabba font
 
-The application references:
+The public site, menu and admin use `Morabba-Medium.woff`.
 
-```text
-/public/fonts/Morabba-Medium.woff
-```
-
-Copy your existing licensed `Morabba-Medium.woff` file from your old site into:
+During `npm run build`, the prebuild step checks for:
 
 ```text
 public/fonts/Morabba-Medium.woff
 ```
 
-The font file itself is intentionally not bundled in this starter.
+If the file is not already present, it downloads the exact Morabba Medium asset from the original `ToorajValaee/menu.cucinetta.ir` repository. You can also place your local copy at that path before building; in that case it is used as-is.
 
 ### Upgrade an existing database
 
