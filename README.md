@@ -148,3 +148,17 @@ Copyright © 2026 Tooraj Valaee.
 ## Category descriptions
 
 Categories support an optional `description` field. It should be editable from the category add/edit dialog and rendered under the category title on `/menu` when present. Existing categories remain valid with an empty description. Existing databases should run `0004_category_description.sql` through the normal migration command.
+
+
+## 0.1.9 menu category layouts
+
+- The homepage no longer has a dedicated full-screen Menu section. The desktop and mobile Menu actions link directly to `/menu`.
+- The menu category bar shows a swipe/drag affordance when its content overflows horizontally.
+- Each category can choose its own product layout in Admin:
+  - `stack`: classic full-width list
+  - `tile2`: two products per row
+  - `tile3`: three products per row
+- Tile layouts center incomplete final rows automatically.
+- Existing categories default to `stack`.
+
+Existing databases must run the normal migration command to apply `0005_category_layout.sql`.
