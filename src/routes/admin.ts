@@ -25,9 +25,9 @@ function bool(value: unknown, fallback = false) {
   return typeof value === "boolean" ? value : fallback;
 }
 
-function categoryLayout(value: unknown): "stack" | "tile2" | "tile3" {
+function categoryLayout(value: unknown): "stack" | "tile2" | "tile3" | "swipe" {
   const layout = str(value);
-  return layout === "tile2" || layout === "tile3" ? layout : "stack";
+  return layout === "tile2" || layout === "tile3" || layout === "swipe" ? layout : "stack";
 }
 
 function slugBase(value: string) {
