@@ -147,3 +147,8 @@ Public homepage and menu include a small linked `© Badje` credit pointing to ht
 Source is publicly available under the **PolyForm Noncommercial License 1.0.0**. Noncommercial use, modification and distribution are permitted under its terms. Commercial use requires a separate license from Tooraj Valaee.
 
 Copyright © 2026 Tooraj Valaee.
+
+
+## Category descriptions
+
+Categories support an optional `description` field. It should be editable from the category add/edit dialog and rendered under the category title on `/menu` when present. Existing categories remain valid with an empty description. Existing databases should run `0004_category_description.sql` through the normal migration command.
