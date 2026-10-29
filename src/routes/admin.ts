@@ -94,7 +94,6 @@ function mapCategory(row: any) {
     slug: row.slug,
     description: row.description || "",
     layoutMode: categoryLayout(row.layout_mode),
-    productCardLayout: productCardLayout(row.product_card_layout),
     sortOrder: row.sort_order,
     isVisible: row.is_visible,
     productCount: Number(row.product_count || 0),
@@ -110,6 +109,7 @@ function mapProduct(row: any) {
     description: row.description || "",
     price: String(row.price ?? "0"),
     imagePath: row.image_path,
+    cardLayout: productCardLayout(row.card_layout),
     sortOrder: row.sort_order,
     isVisible: row.is_visible,
     isAvailable: row.is_available,
@@ -241,9 +241,9 @@ export async function adminRoutes(app: FastifyInstance) {
 
     const order = await pool.query("SELECT COALESCE(MAX(sort_order), -1) + 1 AS next FROM categories");
     const result = await pool.query(
-      `INSERT INTO categories (name, slug, description, layout_mode, product_card_layout, sort_order, is_visible)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [name, uniqueSlug(name), nullable(body.description), categoryLayout(body.layoutMode), productCardLayout(body.productCardLayout), Number(order.rows[0].next), bool(body.isVisible, true)],
+      `INSERT INTO categories (name, slug, description, layout_mode, sort_order, is_visible)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
+      [name, uniqueSlug(name), nullable(body.description), categoryLayout(body.layoutMode), Number(order.rows[0].next), bool(body.isVisible, true)],
     );
     return reply.code(201).send(mapCategory(result.rows[0]));
   });
@@ -255,9 +255,9 @@ export async function adminRoutes(app: FastifyInstance) {
     if (!name) return reply.code(400).send({ error: "نام دسته‌بندی الزامی است" });
 
     const result = await pool.query(
-      `UPDATE categories SET name=$1, description=$2, layout_mode=$3, product_card_layout=$4, is_visible=$5, updated_at=now()
-       WHERE id=$6 RETURNING *`,
-      [name, nullable(body.description), categoryLayout(body.layoutMode), productCardLayout(body.productCardLayout), bool(body.isVisible, true), id],
+      `UPDATE categories SET name=$1, description=$2, layout_mode=$3, is_visible=$4, updated_at=now()
+       WHERE id=$5 RETURNING *`,
+      [name, nullable(body.description), categoryLayout(body.layoutMode), bool(body.isVisible, true), id],
     );
     if (!result.rowCount) return reply.code(404).send({ error: "دسته‌بندی پیدا نشد" });
     return mapCategory(result.rows[0]);
@@ -302,8 +302,8 @@ export async function adminRoutes(app: FastifyInstance) {
     const price = Math.max(0, Math.round(Number(body.price) || 0));
     const result = await pool.query(
       `INSERT INTO products
-       (category_id,name,slug,description,price,image_path,sort_order,is_visible,is_available,is_featured)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+       (category_id,name,slug,description,price,image_path,card_layout,sort_order,is_visible,is_available,is_featured)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
       [
         categoryId,
         name,
@@ -311,6 +311,7 @@ export async function adminRoutes(app: FastifyInstance) {
         nullable(body.description),
         price,
         nullable(body.imagePath),
+        productCardLayout(body.cardLayout),
         Number(order.rows[0].next),
         bool(body.isVisible, true),
         bool(body.isAvailable, true),
@@ -330,14 +331,15 @@ export async function adminRoutes(app: FastifyInstance) {
     const price = Math.max(0, Math.round(Number(body.price) || 0));
     const result = await pool.query(
       `UPDATE products SET category_id=$1,name=$2,description=$3,price=$4,image_path=$5,
-       is_visible=$6,is_available=$7,is_featured=$8,updated_at=now()
-       WHERE id=$9 RETURNING *`,
+       card_layout=$6,is_visible=$7,is_available=$8,is_featured=$9,updated_at=now()
+       WHERE id=$10 RETURNING *`,
       [
         categoryId,
         name,
         nullable(body.description),
         price,
         nullable(body.imagePath),
+        productCardLayout(body.cardLayout),
         bool(body.isVisible, true),
         bool(body.isAvailable, true),
         bool(body.isFeatured, false),
