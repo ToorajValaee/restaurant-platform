@@ -37,6 +37,7 @@ type Category = {
   slug: string;
   description: string;
   layoutMode: "stack" | "tile2" | "tile3" | "swipe";
+  productCardLayout: "vertical" | "horizontal";
   sortOrder: number;
   isVisible: boolean;
   productCount: number;
@@ -92,11 +93,12 @@ function Switch({ checked, onChange }: { checked: boolean; onChange: (v: boolean
 function CategoryDialog({ category, onClose, onSave }: {
   category: Category | null | undefined;
   onClose: () => void;
-  onSave: (value: { name: string; description: string; layoutMode: "stack" | "tile2" | "tile3" | "swipe"; isVisible: boolean }) => Promise<void>;
+  onSave: (value: { name: string; description: string; layoutMode: "stack" | "tile2" | "tile3" | "swipe"; productCardLayout: "vertical" | "horizontal"; isVisible: boolean }) => Promise<void>;
 }) {
   const [name, setName] = useState(category?.name || "");
   const [description, setDescription] = useState(category?.description || "");
   const [layoutMode, setLayoutMode] = useState<"stack" | "tile2" | "tile3" | "swipe">(category?.layoutMode || "stack");
+  const [productCardLayout, setProductCardLayout] = useState<"vertical" | "horizontal">(category?.productCardLayout || "vertical");
   const [isVisible, setVisible] = useState(category?.isVisible ?? true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -105,7 +107,7 @@ function CategoryDialog({ category, onClose, onSave }: {
     e.preventDefault();
     if (!name.trim()) return setError("نام دسته‌بندی الزامی است");
     setBusy(true); setError("");
-    try { await onSave({ name: name.trim(), description: description.trim(), layoutMode, isVisible }); }
+    try { await onSave({ name: name.trim(), description: description.trim(), layoutMode, productCardLayout, isVisible }); }
     catch (e) { setError(e instanceof Error ? e.message : "خطا"); setBusy(false); }
   }
 
@@ -116,7 +118,7 @@ function CategoryDialog({ category, onClose, onSave }: {
         {error && <div className="errorMsg">{error}</div>}
         <label>نام دسته‌بندی<input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="مثلاً نوشیدنی گرم" /></label>
         <label>توضیحات<textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="توضیح کوتاه اختیاری برای نمایش زیر عنوان دسته‌بندی" rows={4} /></label>
-        <label>نحوه نمایش محصولات
+        <label>نحوه چیدمان محصولات
           <select value={layoutMode} onChange={(e) => setLayoutMode(e.target.value as "stack" | "tile2" | "tile3" | "swipe")}>
             <option value="stack">لیستی — زیر هم</option>
             <option value="tile2">کاشی — ۲ محصول در هر ردیف</option>
@@ -124,6 +126,12 @@ function CategoryDialog({ category, onClose, onSave }: {
             <option value="swipe">اسلایدی — یک ردیف قابل کشیدن</option>
           </select>
           <small className="fieldHelp">اگر ردیف آخر کامل نباشد، محصولات باقی‌مانده به صورت خودکار وسط‌چین می‌شوند.</small>
+        </label>
+        <label>نمایش کارت محصول
+          <select value={productCardLayout} onChange={(e) => setProductCardLayout(e.target.value as "vertical" | "horizontal")}>
+            <option value="vertical">عمودی — عکس بالا، اطلاعات پایین</option>
+            <option value="horizontal">افقی — عکس راست، اطلاعات چپ</option>
+          </select>
         </label>
         <label className="switchLine"><div><span>نمایش در منو</span><small>اگر خاموش باشد، دسته‌بندی و محصولاتش در منوی عمومی دیده نمی‌شوند.</small></div><Switch checked={isVisible} onChange={setVisible} /></label>
         <div className="modalActions"><button type="button" className="secondary" onClick={onClose}>انصراف</button><button disabled={busy}>{busy ? "در حال ذخیره..." : "ذخیره"}</button></div>
@@ -240,7 +248,7 @@ function App() {
     catch (e) { fail(e); } finally { setSaving(false); }
   }
 
-  async function saveCategory(value: { name: string; description: string; layoutMode: "stack" | "tile2" | "tile3" | "swipe"; isVisible: boolean }) {
+  async function saveCategory(value: { name: string; description: string; layoutMode: "stack" | "tile2" | "tile3" | "swipe"; productCardLayout: "vertical" | "horizontal"; isVisible: boolean }) {
     if (categoryDialog) await api(`/api/admin/categories/${categoryDialog.id}`, { method: "PUT", body: JSON.stringify(value) });
     else await api("/api/admin/categories", { method: "POST", body: JSON.stringify(value) });
     setCategoryDialog(undefined); await load(); notice("دسته‌بندی ذخیره شد");
@@ -252,7 +260,7 @@ function App() {
   }
 
   async function quickCategory(c: Category, patch: Partial<Category>) {
-    try { await api(`/api/admin/categories/${c.id}`, { method: "PUT", body: JSON.stringify({ name: c.name, description: c.description, layoutMode: c.layoutMode, isVisible: patch.isVisible ?? c.isVisible }) }); await load(); } catch (e) { fail(e); }
+    try { await api(`/api/admin/categories/${c.id}`, { method: "PUT", body: JSON.stringify({ name: c.name, description: c.description, layoutMode: c.layoutMode, productCardLayout: c.productCardLayout, isVisible: patch.isVisible ?? c.isVisible }) }); await load(); } catch (e) { fail(e); }
   }
 
   async function reorderCategories(id: string, dir: -1 | 1) {
@@ -308,7 +316,7 @@ function App() {
         <label className="switchLine"><div><span>تحویل حضوری</span></div><Switch checked={settings.pickupEnabled} onChange={(v) => setSettings({ ...settings, pickupEnabled: v })} /></label><label className="switchLine"><div><span>سرو داخل</span></div><Switch checked={settings.dineInEnabled} onChange={(v) => setSettings({ ...settings, dineInEnabled: v })} /></label><label className="switchLine"><div><span>ارسال</span></div><Switch checked={settings.deliveryEnabled} onChange={(v) => setSettings({ ...settings, deliveryEnabled: v })} /></label>
         <div className="wide"><button disabled={saving}>{saving ? "در حال ذخیره..." : "ذخیره تنظیمات"}</button></div>
       </form></>}
-      {tab === "categories" && <><div className="top"><div><h1>دسته‌بندی‌ها</h1><p className="muted">نام، توضیحات، نمایش و ترتیب</p></div><button onClick={() => setCategoryDialog(null)}>+ دسته‌بندی</button></div><div className="listCard">{categories.length ? categories.map((c, i) => <div className="row" key={c.id}><span className="orderBadge">{i + 1}</span><div className="grow"><strong>{c.name}</strong>{c.description && <small>{c.description}</small>}<small>{c.productCount} محصول · {c.layoutMode === "tile2" ? "کاشی ۲ ستونه" : c.layoutMode === "tile3" ? "کاشی ۳ ستونه" : c.layoutMode === "swipe" ? "اسلایدی یک‌ردیفه" : "لیستی"}</small></div><div className="actions"><Switch checked={c.isVisible} onChange={(v) => quickCategory(c, { isVisible: v })} /><button className="subtle" disabled={i === 0} onClick={() => reorderCategories(c.id, -1)}>↑</button><button className="subtle" disabled={i === categories.length - 1} onClick={() => reorderCategories(c.id, 1)}>↓</button><button onClick={() => setCategoryDialog(c)}>ویرایش</button><button className="danger" onClick={() => removeCategory(c)}>حذف</button></div></div>) : <div className="empty">هنوز دسته‌بندی ایجاد نشده است.</div>}</div></>}
+      {tab === "categories" && <><div className="top"><div><h1>دسته‌بندی‌ها</h1><p className="muted">نام، توضیحات، نمایش و ترتیب</p></div><button onClick={() => setCategoryDialog(null)}>+ دسته‌بندی</button></div><div className="listCard">{categories.length ? categories.map((c, i) => <div className="row" key={c.id}><span className="orderBadge">{i + 1}</span><div className="grow"><strong>{c.name}</strong>{c.description && <small>{c.description}</small>}<small>{c.productCount} محصول · {c.layoutMode === "tile2" ? "کاشی ۲ ستونه" : c.layoutMode === "tile3" ? "کاشی ۳ ستونه" : c.layoutMode === "swipe" ? "اسلایدی یک‌ردیفه" : "لیستی"} · {c.productCardLayout === "horizontal" ? "کارت افقی" : "کارت عمودی"}</small></div><div className="actions"><Switch checked={c.isVisible} onChange={(v) => quickCategory(c, { isVisible: v })} /><button className="subtle" disabled={i === 0} onClick={() => reorderCategories(c.id, -1)}>↑</button><button className="subtle" disabled={i === categories.length - 1} onClick={() => reorderCategories(c.id, 1)}>↓</button><button onClick={() => setCategoryDialog(c)}>ویرایش</button><button className="danger" onClick={() => removeCategory(c)}>حذف</button></div></div>) : <div className="empty">هنوز دسته‌بندی ایجاد نشده است.</div>}</div></>}
       {tab === "products" && <><div className="top"><div><h1>محصولات</h1><p className="muted">جزئیات، عکس، موجودی و ترتیب</p></div><button disabled={!categories.length} onClick={() => setProductDialog(null)}>+ محصول</button></div>{categories.map((c) => { const ps = products.filter((p) => p.categoryId === c.id); return <section className="category" key={c.id}><div className="categoryTitle"><h2>{c.name}</h2><small>{ps.length} محصول</small></div>{ps.length ? ps.map((p, i) => <div className={`productRow ${p.isVisible ? "" : "hiddenProduct"}`} key={p.id}><div className="thumb">{p.imagePath ? <img src={p.imagePath} alt="" /> : "بدون عکس"}</div><div className="grow"><strong>{p.name}</strong>{p.description && <small className="descriptionPreview">{p.description}</small>}<small className="priceText">{Number(p.price).toLocaleString("fa-IR")} {settings.currency}</small></div><div className="checks"><label>نمایش <Switch checked={p.isVisible} onChange={(v) => quickProduct(p, { isVisible: v })} /></label><label>موجود <Switch checked={p.isAvailable} onChange={(v) => quickProduct(p, { isAvailable: v })} /></label><label>ویژه <Switch checked={p.isFeatured} onChange={(v) => quickProduct(p, { isFeatured: v })} /></label></div><div className="actions"><button className="subtle" disabled={i === 0} onClick={() => reorderProduct(p, -1)}>↑</button><button className="subtle" disabled={i === ps.length - 1} onClick={() => reorderProduct(p, 1)}>↓</button><button onClick={() => setProductDialog(p)}>ویرایش</button><button className="danger" onClick={() => removeProduct(p)}>حذف</button></div></div>) : <div className="empty compact">محصولی در این دسته نیست.</div>}</section>; })}</>}
     </main>
     {categoryDialog !== undefined && <CategoryDialog category={categoryDialog} onClose={() => setCategoryDialog(undefined)} onSave={saveCategory} />}
