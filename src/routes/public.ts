@@ -157,8 +157,10 @@ const sections=[...document.querySelectorAll('[data-section]')];const links=[...
     const menuHtml = categoriesResult.rows.map((c: any) => {
       const products = productsByCategory.get(c.id) || [];
       const layout = c.layout_mode === "tile2" || c.layout_mode === "tile3" || c.layout_mode === "swipe" ? c.layout_mode : "stack";
-      const cardLayout = c.product_card_layout === "horizontal" ? "horizontal" : "vertical";
-      const productHtml = products.map((p: any) => `<article class="product card-${cardLayout} ${p.is_available ? "" : "unavailable"}">${p.image_path ? `<div class="product-image"><img loading="lazy" src="${esc(p.image_path)}" alt="${esc(p.name)}"></div>` : ""}<div class="product-content"><h3>${esc(p.name)}</h3>${p.description ? `<p>${esc(p.description)}</p>` : ""}<div class="product-meta"><span class="price">${Number(p.price || 0).toLocaleString("fa-IR")} ${esc(s.currency)}</span>${p.is_available ? "" : `<span class="soldout">ناموجود</span>`}</div></div></article>`).join("");
+      const productHtml = products.map((p: any) => {
+        const cardLayout = p.card_layout === "horizontal" ? "horizontal" : "vertical";
+        return `<article class="product card-${cardLayout} ${p.is_available ? "" : "unavailable"}">${p.image_path ? `<div class="product-image"><img loading="lazy" src="${esc(p.image_path)}" alt="${esc(p.name)}"></div>` : ""}<div class="product-content"><h3>${esc(p.name)}</h3>${p.description ? `<p>${esc(p.description)}</p>` : ""}<div class="product-meta"><span class="price">${Number(p.price || 0).toLocaleString("fa-IR")} ${esc(s.currency)}</span>${p.is_available ? "" : `<span class="soldout">ناموجود</span>`}</div></div></article>`;
+      }).join("");
       return `<section class="category-block" data-cat-section="${esc(c.id)}"><header class="category-heading" id="cat-${esc(c.id)}"><h2>${esc(c.name)}</h2>${c.description ? `<p class="category-description">${esc(c.description)}</p>` : ""}<div class="category-underline"></div></header><div class="products-layout layout-${layout}">${productHtml}</div></section>`;
     }).join("");
 
