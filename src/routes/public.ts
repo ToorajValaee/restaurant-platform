@@ -114,13 +114,11 @@ export async function publicRoutes(app: FastifyInstance) {
     const sections = [
       `<section id="home" class="snap-section hero-section" data-section="home"><div class="section-inner">${mediaMarkup(s.logo_path, brand, "hero-logo")}${s.business_description ? `<p class="hero-copy">${esc(s.business_description)}</p>` : ""}</div></section>`,
       contactContent ? `<section id="contact" class="snap-section" data-section="contact"><div class="section-inner"><h1>تماس با ما</h1>${contactContent}</div></section>` : "",
-      s.address ? `<section id="address" class="snap-section" data-section="address"><div class="section-inner"><h1>آدرس و شعب</h1><p class="address">${esc(s.address)}</p>${directions ? `<a class="outline-cta" href="${esc(directions)}" target="_blank" rel="noopener noreferrer">مسیر یابی</a>` : ""}</div></section>` : "",
     ].filter(Boolean);
 
     const navItems = [
       { href: "/menu", label: "منو" },
       ...(contactContent ? [{ href: "#contact", label: "تماس با ما", section: "contact" }] : []),
-      ...(s.address ? [{ href: "#address", label: "آدرس و شعب", section: "address" }] : []),
     ];
 
     const html = `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>${esc(s.seo_title || brand)}</title><meta name="description" content="${esc(s.seo_description || s.business_description || "")}">${s.favicon_path ? `<link rel="icon" href="${esc(s.favicon_path)}">` : ""}<style>
